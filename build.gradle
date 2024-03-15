@@ -1,0 +1,151 @@
+group = 'akkiF'
+version = '1.0.0'
+def springBootVersion = 'latest.release'
+def protobufVersion = '[3.22,4)'
+def grpcVersion = 'latest.release'
+def grpcSpringBootVersion = 'latest.release'
+
+buildscript {
+
+    repositories {
+        gradlePluginPortal()
+        mavenLocal()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'org.springframework.boot:spring-boot-gradle-plugin:latest.release'
+        classpath 'com.google.protobuf:protobuf-gradle-plugin:latest.release'
+        classpath 'com.patdouble.awsecr:com.patdouble.awsecr.gradle.plugin:latest.release'
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'java-library'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'com.google.protobuf'
+apply plugin: 'eclipse'
+apply plugin: 'com.patdouble.awsecr'
+apply plugin: 'eclipse'
+apply plugin: 'maven-publish'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    // Protocol Buffers
+    api "com.google.protobuf:protobuf-java:${protobufVersion}"
+    api "com.google.protobuf:protobuf-java-util:${protobufVersion}"
+
+    // gRPC
+    api "io.grpc:grpc-netty:${grpcVersion}"
+    api "io.grpc:grpc-netty-shaded:${grpcVersion}"
+    api "io.grpc:grpc-protobuf:${grpcVersion}"
+    api "io.grpc:grpc-stub:${grpcVersion}"
+
+    // gRPC サービス側は以下も使用する
+    api "io.grpc:grpc-services:${grpcVersion}"
+    
+    // Spring gRPC
+    api "io.github.lognet:grpc-spring-boot-starter:${grpcSpringBootVersion}"
+    // java.lang.ClassNotFoundException: io.grpc.inprocess.InProcessServerBuilderの回避
+    api "io.grpc:grpc-inprocess:${grpcVersion}"
+
+    api "javax.annotation:javax.annotation-api:latest.release"
+
+    // googleapi proto
+    api "com.google.api.grpc:proto-google-common-protos:latest.release"
+    
+    // Spring boot
+    implementation "org.springframework.boot:spring-boot-starter-web:${springBootVersion}"
+    implementation "org.springframework.boot:spring-boot-starter-data-redis:${springBootVersion}"
+    compileOnly "org.springframework.boot:spring-boot-devtools"
+
+    // MyBatis
+    implementation "org.mybatis.spring.boot:mybatis-spring-boot-starter:latest.release"
+
+    // MySQL 関連
+    implementation "mysql:mysql-connector-java:latest.release"
+
+    // Test
+    testImplementation "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
+    testImplementation "org.junit.platform:junit-platform-engine:latest.release"
+    testImplementation "org.mockito:mockito-inline:latest.release"
+    
+    // akkiF-spec
+    // https://github.com/akki-F/akki-protoをmavenLocal出力して参照
+    // クラウドへのデプロイの場合はnexus等を利用する必要あり
+    implementation "akkiF:akki-proto:latest.release"
+    
+    // Commons
+    api "org.apache.commons:commons-lang3:latest.release"
+    api "org.apache.commons:commons-text:latest.release"
+    api "org.apache.commons:commons-collections4:latest.release"
+    api "org.apache.httpcomponents:httpclient:latest.release"
+    api "commons-beanutils:commons-beanutils:[1,2)"
+    api "commons-codec:commons-codec:[1,2)"
+    api "commons-io:commons-io:[2,3)"
+    api "commons-validator:commons-validator:latest.release"
+
+    // lombok
+    compileOnly "org.projectlombok:lombok:latest.release"
+    annotationProcessor 'org.projectlombok:lombok:latest.release'
+    testCompileOnly "org.projectlombok:lombok:latest.release"
+    testAnnotationProcessor 'org.projectlombok:lombok:latest.release'
+}
+
+// Java version
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
+
+tasks.withType(JavaCompile){
+    options.encoding = 'UTF-8'
+}
+
+sourceSets {
+    main {
+        java {
+        	srcDirs('src/main/java')
+        	srcDirs('src/main/resources')
+            // DB Entity
+            srcDirs('src/main/entity')
+            // Enum
+            srcDirs('src/main/enum')
+            // Generated Code
+            //srcDirs("$buildDir/generated/src/main/java")
+        }
+        proto {
+            // Proto file source directory
+            srcDir('.')
+            exclude 'build'
+        }
+    }
+    test {
+        java {
+            srcDirs('src/test/java')
+            srcDirs('src/test/resouces')
+        }
+    }
+}
+
+test {
+    useJUnit()
+    useJUnitPlatform()
+    //failFast = true
+    forkEvery = 1
+    jvmArgs '-ea', "-Dspring.profiles.active=junit"
+}
+
+// Eclipse gradle
+eclipse {
+    classpath {
+        containers 'org.springsource.ide.eclipse.gradle.classpathcontainer'
+        downloadSources = true
+        downloadJavadoc = true
+    }
+}
+project.tasks.matching { ['sourcesJar', 'generatePomFileForMavenJavaPublication'].contains(it.name) }.all {
+    it.dependsOn ':generateProto'
+}
