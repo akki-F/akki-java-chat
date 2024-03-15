@@ -1,0 +1,24 @@
+grpc:
+  enableReflection: true
+  security:
+    auth:
+      enabled: false
+  port: 6565
+spring:
+  application:
+    name: akki-java-chat
+  main:
+    # self injection している Bean を許可する
+    # https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.6-Release-Notes#circular-references-prohibited-by-default
+    allow-circular-references: true
+  # 接続情報の指定は各環境用 .yml で行う
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      pool-name: ConnectionPool
+      connection-test-query: SELECT 1
+      auto-commit: false
+      transaction-isolation: TRANSACTION_READ_COMMITTED
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true

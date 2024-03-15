@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="akki.repository.MessageRepository">
+	<!-- メッセージ -->
+    <resultMap type="akki.model.entity.MessageEntity" id="messageResult">
+        <id property="messageSeq" column="message_seq" />
+        <result property="messageContent" column="message_content" />
+        <result property="messageDatetime" column="message_datetime" />
+        <result property="picName" column="pic_name" />
+        <result property="createdDatetime" column="created_datetime" />
+        <result property="createdUser" column="created_user" />
+        <result property="createdFunc" column="created_func" />
+        <result property="updatedDatetime" column="updated_datetime" />
+        <result property="updatedUser" column="updated_user" />
+        <result property="updatedFunc" column="updated_func" />
+        <result property="deleteFlag" column="delete_flag" />
+    </resultMap>
+
+    <select id="selectMessage" resultMap="messageResult">
+        SELECT 
+        	<include refid="messageColumns"></include>
+         FROM message
+    </select>
+    
+    <!-- メッセージ_カラム -->
+    <sql id="messageColumns">
+        message_seq AS message_seq
+        , message_content AS message_content
+        , message_datetime AS message_datetime
+        , pic_name AS pic_name
+        , created_datetime AS created_datetime
+        , created_user AS created_user
+        , created_func AS created_func
+        , updated_datetime AS updated_datetime
+        , updated_user AS updated_user
+        , updated_func AS updated_func
+        , delete_flag AS delete_flag
+    </sql>
+</mapper>
