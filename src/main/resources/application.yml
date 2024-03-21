@@ -3,6 +3,10 @@ grpc:
   security:
     auth:
       enabled: false
+  netty-server:
+    keep-alive-time: 1000s
+    keep-alive-timeout: 5000s  
+    permit-keep-alive-time: 1000s
   port: 6565
 spring:
   application:
